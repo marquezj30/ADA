@@ -39,7 +39,8 @@ import pandas as pd
 # -----------------------------
 # Leer ubicaciones con pandas
 # -----------------------------
-#def leer_ubicaciones(path):
+```python
+def leer_ubicaciones(path):
     try:
         print("📍 Leyendo archivo de ubicaciones con pandas...")
         ubicaciones = pd.read_csv(path, header=None, names=["latitud", "longitud"])
@@ -49,7 +50,7 @@ import pandas as pd
     except Exception as e:
         print(f"❌ Error al leer ubicaciones: {e}")
         return None
-
+```
 
 **Función leer_ubicaciones(path)**: Esta función recibe la ruta al archivo de ubicaciones como parámetro. Usa pd.read_csv() para leer el archivo txt. Se le pasa 
 
@@ -73,7 +74,8 @@ from tqdm import tqdm
 # -------------------------------
 # Leer usuarios con tqdm y open
 # -------------------------------
-#def leer_usuarios(path):
+```python
+def leer_usuarios(path):
     try:
         print("👥 Leyendo archivo de usuarios línea por línea...")
         usuarios = []
@@ -87,7 +89,7 @@ from tqdm import tqdm
         print(f"❌ Error al leer usuarios: {e}")
         return None
 
-
+```
 ### 3. Consulta de Usuario y Ubicación
 
 Con los datos cargados, la siguiente función permite consultar la ubicación de un usuario a partir de su ID. Si se encuentra el usuario, se imprime su ubicación y las conexiones con otros usuarios.
@@ -96,21 +98,24 @@ Con los datos cargados, la siguiente función permite consultar la ubicación de
 
 **Manejo de Errores**: Si el `usuario_id` no existe en el DataFrame o la lista, se captura un `IndexError` y se imprime un mensaje de error indicando que el usuario no fue encontrado.
 
-#def consultar_usuario(usuario_id, ubicaciones, usuarios):
-    try:
-        # Ubicación del usuario
-        latitud, longitud = ubicaciones.iloc[usuario_id]
-        print(f"🌍 Ubicación del usuario {usuario_id}: Latitud {latitud}, Longitud {longitud}")
-        
-        # Conexiones del usuario
-        conexiones = usuarios[usuario_id]
-        print(f"🔗 Conexiones del usuario {usuario_id}: {conexiones[:5]}... (total {len(conexiones)})")
-    
-    except IndexError:
-        print(f"❌ Usuario con ID {usuario_id} no encontrado.")
+```python
+1-# Función para consultar la ubicación y conexiones de un usuario
+2-def consultar_usuario(usuario_id, ubicaciones, usuarios):
+3-    try:
+4-        # Ubicación del usuario
+5-        latitud, longitud = ubicaciones.iloc[usuario_id]
+6-        print(f"🌍 Ubicación del usuario {usuario_id}: Latitud {latitud}, Longitud {longitud}")
+7-        
+8-        # Conexiones del usuario
+9-        conexiones = usuarios[usuario_id]
+10-        print(f"🔗 Conexiones del usuario {usuario_id}: {conexiones[:5]}... (total {len(conexiones)})")
+11-    
+12-    except IndexError:
+13-        print(f"❌ Usuario con ID {usuario_id} no encontrado.")
 
+```
 
-### 🏁 Ejecución
+###  Ejecución
 
 Para ejecutar este proyecto, simplemente debes llamar las funciones de lectura y consulta. Por ejemplo:
 
@@ -122,13 +127,13 @@ usuarios = leer_usuarios('10_million_user.txt')
 # Consulta de un usuario específico
 consultar_usuario(12345, ubicaciones, usuarios)
 
-### 🚧 Mejoras Futuras
+###  Mejoras Futuras
 
 - **Optimización de Memoria**: Considerar el uso de bases de datos para manejar eficientemente los datos a gran escala.
 - **Interfaz de Usuario**: Implementar una interfaz gráfica que permita a los usuarios consultar los datos de manera más interactiva.
 - **Multihilo o Multiproceso**: Utilizar procesamiento paralelo para mejorar el rendimiento al leer los archivos grandes.
 
-### 🛠 Requisitos
+###  Requisitos
 
 - Python 3.x
 - pandas
