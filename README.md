@@ -39,7 +39,7 @@ import pandas as pd
 # -----------------------------
 # Leer ubicaciones con pandas
 # -----------------------------
-def leer_ubicaciones(path):
+#def leer_ubicaciones(path):
     try:
         print("📍 Leyendo archivo de ubicaciones con pandas...")
         ubicaciones = pd.read_csv(path, header=None, names=["latitud", "longitud"])
@@ -73,7 +73,7 @@ from tqdm import tqdm
 # -------------------------------
 # Leer usuarios con tqdm y open
 # -------------------------------
-def leer_usuarios(path):
+#def leer_usuarios(path):
     try:
         print("👥 Leyendo archivo de usuarios línea por línea...")
         usuarios = []
@@ -96,7 +96,7 @@ Con los datos cargados, la siguiente función permite consultar la ubicación de
 
 **Manejo de Errores**: Si el `usuario_id` no existe en el DataFrame o la lista, se captura un `IndexError` y se imprime un mensaje de error indicando que el usuario no fue encontrado.
 
-def consultar_usuario(usuario_id, ubicaciones, usuarios):
+#def consultar_usuario(usuario_id, ubicaciones, usuarios):
     try:
         # Ubicación del usuario
         latitud, longitud = ubicaciones.iloc[usuario_id]
