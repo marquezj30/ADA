@@ -4,7 +4,7 @@ Este proyecto implementa un sistema para cargar, construir y analizar redes soci
 
 ## Descripción
 
-El código principal, ubicado en `2.py`, permite:
+El código principal, ubicado en `poryecto_ada.py`, permite:
 - Cargar datos de ubicaciones (`10_million_location.txt`) y conexiones de usuarios (`10_million_user.txt`).
 - Construir un grafo (`networkx.Graph`) con nodos (usuarios) y aristas (conexiones).
 - Filtrar ubicaciones geográficas para asegurar que estén en tierra firme usando `geopandas`.
@@ -241,7 +241,7 @@ def label_propagation(self, max_iter=1000) -> list:
 
 Ejecuta el script principal:
 ```bash
-python 2.py
+python proyecto_ada.py
 ```
 
 El script:
@@ -469,7 +469,7 @@ def plot_mapbox(self, sample_size: int = 1000) -> None:
 
 
 ```
-C:\Users\user\OneDrive\Escritorio\NUEVO_ADA>python 2.py
+C:\Users\user\OneDrive\Escritorio\NUEVO_ADA>python proyecto_ada.py
 2025-06-25 11:27:50,121 - graph_loader - INFO - Archivos encontrados: 10_million_location.txt, 10_million_user.txt
 2025-06-25 11:27:50,122 - graph_loader - INFO - Iniciando carga de ubicaciones. Memoria antes: 118.93 MB
 2025-06-25 11:27:50,349 - graph_loader - INFO - Filtrando ubicaciones geográficamente...
