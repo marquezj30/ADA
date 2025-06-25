@@ -1,143 +1,139 @@
-# Graph Social Network Analysis
+# Análisis de Redes Sociales con Grafos
 
-This project provides a Python-based implementation for loading, analyzing, and visualizing large-scale social network graphs with geographical data. It includes functionality for graph construction, community detection, shortest path calculations, and geospatial visualizations.
+Este proyecto implementa un sistema para cargar, construir y analizar redes sociales representadas como grafos, utilizando datos de ubicaciones geográficas y conexiones entre usuarios. Utiliza bibliotecas como `networkx`, `geopandas`, `polars`, y `plotly` para procesar grandes conjuntos de datos y generar visualizaciones interactivas.
 
-## Project Structure
+## Descripción
 
-- `graph_loader.py`: Main script containing the `GraphDataLoader` and `GraphAnalyzer` classes, along with the `main()` function to orchestrate the workflow.
-- Input files (not included):
-  - `10_million_location.txt`: CSV file with latitude and longitude for each user.
-  - `10_million_user.txt`: Text file with user connections (adjacency list format).
-- Output files:
-  - `network_map_visualization_<sample_size>.html`: Interactive map showing network connections.
-  - `map_visualization.html`: Interactive map showing user locations.
-  - `graph_loader.log`: Log file capturing runtime information.
+El código principal, ubicado en `2.py`, permite:
+- Cargar datos de ubicaciones (`10_million_location.txt`) y conexiones de usuarios (`10_million_user.txt`).
+- Construir un grafo (`networkx.Graph`) con nodos (usuarios) y aristas (conexiones).
+- Filtrar ubicaciones geográficas para asegurar que estén en tierra firme usando `geopandas`.
+- Analizar propiedades de la red, como densidad, grado promedio, y comunidades.
+- Generar visualizaciones interactivas de la red y ubicaciones en un mapa mundial.
 
-## Dependencies
+El proyecto está diseñado para manejar grandes volúmenes de datos de manera eficiente, con monitoreo de uso de memoria y procesamiento por lotes.
 
-The project relies on several Python libraries. Install them using the following command in your terminal:
+## Requisitos
 
+- Python 3.8 o superior
+- Dependencias:
+  ```bash
+  pip install polars networkx geopandas plotly psutil tqdm numpy shapely community matplotlib
+  ```
+- Archivos de datos:
+  - `10_million_location.txt`: Contiene latitudes y longitudes de usuarios, formato CSV sin encabezado.
+  - `10_million_user.txt`: Contiene listas de conexiones de usuarios, formato CSV.
+  - Shapefile de países: `ne_110m_admin_0_countries/ne_110m_admin_0_countries.shp` (descargar desde [Natural Earth](https://www.naturalearthdata.com/downloads/110m-cultural-vectors/)).
+
+## Instalación
+
+1. Clona el repositorio o copia el código en tu máquina.
+2. Instala las dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Asegúrate de que los archivos de datos (`10_million_location.txt`, `10_million_user.txt`) y el shapefile estén en el directorio correcto.
+
+## Uso
+
+Ejecuta el script principal:
 ```bash
-pip install polars networkx geopandas plotly psutil tqdm numpy shapely python-louvain
+python 2.py
 ```
 
-### Library Descriptions
+El script:
+- Carga los datos de ubicaciones y usuarios (limitado a 1,000 nodos por defecto).
+- Construye un grafo con las conexiones válidas.
+- Analiza propiedades de la red (densidad, comunidades, caminos más cortos, etc.).
+- Genera dos visualizaciones HTML:
+  - `network_map_visualization_1000.html`: Red de conexiones sobre un mapa mundial.
+  - `map_visualization.html`: Mapa de ubicaciones de usuarios.
 
-- **polars**: High-performance DataFrame library for efficient data loading and manipulation.
-- **networkx**: Graph library for creating, manipulating, and analyzing complex networks.
-- **geopandas**: Extends pandas for geospatial data handling, used for geographical filtering.
-- **plotly**: Interactive plotting library for generating web-based visualizations.
-- **psutil**: Monitors system resources, used for memory usage tracking.
-- **tqdm**: Progress bar for tracking long-running operations.
-- **numpy**: Numerical computing library for array operations.
-- **shapely**: Geometric operations for spatial analysis.
-- **python-louvain**: Implementation of the Louvain algorithm for community detection.
+### Configuración
 
-Additionally, a shapefile (`ne_110m_admin_0_countries.shp`) is required for land-based filtering. Download it from [Natural Earth](https://www.naturalearthdata.com/downloads/110m-cultural-vectors/).
+Puedes ajustar parámetros en la función `main()`:
+```python
+MAX_NODOS = 1_000  # Número máximo de nodos a procesar
+VIS_NODOS = 1_000  # Número de nodos para la visualización
+```
 
-## Main Components
+## Estructura del Código
 
-### `GraphDataLoader` Class
+El código está organizado en dos clases principales:
 
-Handles data loading, graph construction, and visualization.
+### `GraphDataLoader`
+Responsable de cargar datos, construir el grafo y generar visualizaciones.
 
-#### Key Methods
+**Fragmento clave: Construcción del grafo**
+```python
+def construir_grafo(self, max_nodos: int = 100_000) -> nx.Graph:
+    valid_nodes = set(self.locations_df['user_id'].to_list())
+    G = nx.Graph()
+    print(f"🔧 Construyendo grafo (máximo {max_nodos:,} nodos)...")
+    for i, conexiones in enumerate(tqdm(usuarios_a_procesar, desc="Construyendo grafo")):
+        user_id = i + 1
+        if user_id not in valid_nodes:
+            continue
+        for conn in conexiones:
+            if user_id != conn and conn <= max_nodos and conn in valid_nodes:
+                G.add_edge(user_id, conn)
+    self.graph = G
+    return G
+```
 
-- **`__init__(location_path, user_path, batch_size)`**: Initializes the loader with paths to location and user data files and a batch size for processing.
-- **`load_locations()`**: Loads and filters geographical locations to ensure they lie on land.
-- **`load_users_data(max_users)`**: Loads user connections into memory.
-- **`construir_grafo(max_nodos)`**: Constructs an undirected graph using NetworkX.
-- **`build_complete_sample_graph(sample_size)`**: Builds a directed graph for a sample of nodes.
-- **`plot_network_with_connections(sample_size)`**: Visualizes the network with connections on a world map using Plotly.
-- **`plot_mapbox(sample_size)`**: Plots user locations on a world map.
-- **`process_adjacency_list()`**: Counts total edges in the user data file.
+### `GraphAnalyzer`
+Analiza propiedades de la red, como comunidades, caminos más cortos, y árboles de expansión mínima.
 
-### `GraphAnalyzer` Class
+**Fragmento clave: Detección de comunidades**
+```python
+def detect_communities_louvain(self) -> dict:
+    if isinstance(self.graph, nx.DiGraph):
+        G_undirected = self.graph.to_undirected()
+    else:
+        G_undirected = self.graph
+    return community.best_partition(G_undirected)
+```
 
-Performs network analysis on the constructed graph.
+## Ejemplo de Salida
 
-#### Key Methods
+La ejecución genera logs detallados y archivos HTML. Ejemplo de log:
+```
+2025-06-25 11:30:23,510 - graph_loader - INFO - Grafo construido exitosamente:
+  - Nodos: 1,000
+  - Aristas: 5,834
+  - Densidad: 0.011680
+2025-06-25 11:30:30,787 - graph_loader - INFO - Comunidades detectadas (Louvain): 15
+2025-06-25 11:30:31,219 - graph_loader - INFO - Longitud promedio del camino más corto: 3.20
+```
 
-- **`__init__(graph, locations_df)`**: Initializes with a graph and optional location data.
-- **`detect_communities_louvain()`**: Detects communities using the Louvain algorithm.
-- **`label_propagation(max_iter)`**: Detects communities using label propagation.
-- **`bfs_shortest_path(start, end)`**: Finds the shortest path using Breadth-First Search.
-- **`average_shortest_path(num_samples)`**: Estimates average shortest path length.
-- **`haversine(lat1, lon1, lat2, lon2)`**: Calculates geographical distance between two points.
-- **`kruskal_mst()`**: Computes the Minimum Spanning Tree using Kruskal’s algorithm with geographical weights.
-- **`analyze_network_properties()`**: Computes graph metrics (e.g., density, degree, PageRank).
-- **`find_shortest_path_dijkstra(start, end)`**: Finds the shortest path using Dijkstra’s algorithm.
+Archivos generados:
+- `network_map_visualization_1000.html`: Visualización interactiva de la red.
+- `map_visualization.html`: Mapa con ubicaciones de usuarios.
 
-### `main()` Function
+## Visualizaciones
 
-Orchestrates the workflow:
-1. Loads location and user data.
-2. Constructs a sample graph.
-3. Analyzes network properties, communities, and shortest paths.
-4. Generates visualizations.
-5. Logs runtime statistics.
+Las visualizaciones usan `plotly` para mostrar:
+- **Red de conexiones**: Nodos (usuarios) y aristas (conexiones) en un mapa mundial, con colores según el grado de conexión.
+- **Mapa de ubicaciones**: Puntos geográficos de usuarios.
 
-## Setup in Visual Studio Code
+**Fragmento clave: Visualización de la red**
+```python
+fig.add_trace(go.Scattergeo(
+    lat=edge_lats,
+    lon=edge_lons,
+    mode='lines',
+    line=dict(width=1, color='rgba(255, 0, 0, 0.3)'),
+    name='Conexiones'
+))
+```
 
-1. **Clone the Repository** (or create a new project folder):
-   ```bash
-   git clone <repository-url>
-   cd <repository-folder>
-   ```
+## Contribuciones
 
-2. **Create a Virtual Environment**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+Si deseas contribuir:
+1. Crea un fork del repositorio.
+2. Implementa tus cambios en una rama nueva.
+3. Envía un pull request con una descripción clara de los cambios.
 
-3. **Install Dependencies**:
-   ```bash
-   pip install polars networkx geopandas plotly psutil tqdm numpy shapely python-louvain
-   ```
+## Licencia
 
-4. **Download the Shapefile**:
-   - Download the 1:110m Cultural Vectors (Admin 0 – Countries) from [Natural Earth](https://www.naturalearthdata.com/downloads/110m-cultural-vectors/).
-   - Extract and place the `ne_110m_admin_0_countries` folder in the project root.
-
-5. **Prepare Input Files**:
-   - Place `10_million_location.txt` and `10_million_user.txt` in the project root.
-   - Expected formats:
-     - `10_million_location.txt`: CSV with no header, columns: latitude, longitude.
-     - `10_million_user.txt`: One line per user, comma-separated integers representing connections.
-
-6. **Configure VS Code**:
-   - Open the project folder in VS Code.
-   - Select the Python interpreter from the virtual environment (`venv`).
-   - Install recommended extensions:
-     - Python (by Microsoft)
-     - Pylance (for better Python IntelliSense)
-     - Jupyter (for interactive debugging, if needed)
-
-7. **Run the Script**:
-   - Open `graph_loader.py` in VS Code.
-   - Run the script using the "Run Python File" button or:
-     ```bash
-     python graph_loader.py
-     ```
-
-## Usage Notes
-
-- **Memory Management**: The script monitors memory usage with `psutil` and processes data in batches to handle large datasets.
-- **Logging**: All operations are logged to `graph_loader.log` and the console.
-- **Performance**: Adjust `MAX_NODOS` and `VIS_NODOS` in `main()` to balance performance and memory usage.
-- **Visualizations**: Output HTML files are interactive and require a web browser to view.
-
-## Troubleshooting
-
-- **Missing Shapefile**: Ensure `ne_110m_admin_0_countries.shp` is in the correct path.
-- **Memory Errors**: Reduce `batch_size`, `MAX_NODOS`, or `VIS_NODOS`.
-- **Library Issues**: Verify all dependencies are installed in the active virtual environment.
-- **File Format Errors**: Ensure input files match the expected format.
-
-## Example Output
-
-After running, check:
-- `network_map_visualization_10000.html`: Interactive map with nodes and connections.
-- `map_visualization.html`: Map showing user locations.
-- `graph_loader.log`: Detailed logs of the process, including graph statistics and errors.
+Este proyecto está bajo la licencia MIT. Consulta el archivo `LICENSE` para más detalles.
