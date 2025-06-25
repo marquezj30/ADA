@@ -265,6 +265,7 @@ VIS_NODOS = 1_000  # Número de nodos para la visualización
 El código está organizado en dos clases principales:
 
 **GraphDataLoader**
+
 La función  crea un grafo no dirigido (nx.Graph) a partir de los datos de conexiones de usuarios, asegurándose de que los nodos tengan ubicaciones geográficas válidas. Filtra conexiones para incluir solo nodos dentro del límite especificado (max_nodos) y presentes en el conjunto de nodos válidos. La salida muestra un grafo con 1,000 nodos y 5,834 aristas, con una densidad de 0.01168.
 
 ```python
@@ -306,7 +307,7 @@ def analyze_network_properties(self) -> dict:
 - **Red de conexiones**: Nodos (usuarios) y aristas (conexiones) en un mapa mundial, con colores según el grado de conexión.
 - **Mapa de ubicaciones**: Puntos geográficos de usuarios.
 
-**Fragmento clave: Visualización de la red**
+**Visualización de la red**
 ```python
 fig.add_trace(go.Scattergeo(
     lat=edge_lats,
